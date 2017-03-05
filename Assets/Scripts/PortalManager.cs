@@ -23,12 +23,29 @@ public class PortalManager : MonoBehaviour {
 		
 	}
 
-	public void GeneratePortal(int playerNum, Vector3 location, Vector3 rotation){
+	public Portal GenerateReticle(int playerNum, Vector3 location, Vector3 rotation){
 		GameObject portalObj = Instantiate (portalPrefab, location, Quaternion.Euler(rotation)) as GameObject;
 		Portal portal = portalObj.GetComponent<Portal> ();
+		SpriteRenderer sr = portalObj.GetComponent<SpriteRenderer> ();
 		if (playerNum == 1) {
 			if (nextPortalOrangeP1) {
-				portalObj.GetComponent<SpriteRenderer> ().color = new Color (1, 0.5f, 0);
+				sr.color = new Color (1, 0.5f, 0);
+			} 
+		} else if (playerNum == 2) {
+			if (nextPortalOrangeP2) {
+				sr.color = new Color (1, 0.5f, 0);
+			}
+		}
+		portal.active = false;
+		sr.color = new Color (sr.color.r, sr.color.g, sr.color.b, 0.5f);
+		return portal;
+	}
+
+	public void ActivatePortal(Portal portal, int playerNum){
+		portal.Activate ();
+		SpriteRenderer sr = portal.gameObject.GetComponent<SpriteRenderer> ();
+		if (playerNum == 1) {
+			if (nextPortalOrangeP1) {
 				if (orangePortalP1 != null) {
 					Destroy (orangePortalP1.gameObject);
 				}
@@ -48,7 +65,6 @@ public class PortalManager : MonoBehaviour {
 			nextPortalOrangeP1 = !nextPortalOrangeP1;
 		} else if (playerNum == 2) {
 			if (nextPortalOrangeP2) {
-				portalObj.GetComponent<SpriteRenderer> ().color = new Color (1, 0.5f, 0);
 				if (orangePortalP2 != null) {
 					Destroy (orangePortalP2.gameObject);
 				}

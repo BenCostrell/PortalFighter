@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour {
 	private Transform gunPivot;
 	private PortalManager portalManager;
 	public float timeLockedOutOfPortals;
+	private Portal portalReticle;
 
 	// Use this for initialization
 	void Start () {
@@ -37,9 +38,8 @@ public class PlayerController : MonoBehaviour {
 		float moveY = Input.GetAxis ("Vertical_P" + playerNum);
 		float moveX = Input.GetAxis ("Horizontal_P" + playerNum);
 		Vector2 moveVector = new Vector2 (moveX, moveY);
-		if (Input.GetButton ("Shoot_P" + playerNum)) {
-			Rotate (moveVector);
-		} else if (moveVector.magnitude > 0.1f) {
+		Rotate (moveVector);
+		if (!Input.GetButton ("Shoot_P" + playerNum) && (moveVector.magnitude > 0.1f)) {
 			if (IsGrounded ()) {
 				GroundMove (moveX);
 			} else {
@@ -47,11 +47,17 @@ public class PlayerController : MonoBehaviour {
 			}
 		}
 		if (IsGrounded () && Input.GetButtonDown ("Jump_P" + playerNum)) {
-			Debug.Log ("jumping");
 			Jump ();
 		}
-
-		if (Input.GetButtonUp ("Shoot_P" + playerNum)) {
+			
+		if (Input.GetButton ("Shoot_P" + playerNum)) {
+			if (portalReticle == null) {
+				SpawnReticle ();
+			} else {
+				MoveReticle ();
+			}
+		}
+		else if (portalReticle != null) {
 			Shoot ();
 		}
 	}
@@ -78,15 +84,48 @@ public class PlayerController : MonoBehaviour {
 		rb.velocity = jumpForce * Vector2.up;
 	}
 
-	void Shoot(){
+	void SpawnReticle(){
 		float zRot = gunPivot.rotation.eulerAngles.z * Mathf.Deg2Rad;
 		Vector2 aimVector = new Vector2 (Mathf.Cos (zRot), Mathf.Sin (zRot));
-		Debug.DrawRay (transform.position, aimVector * 100, Color.blue, 2f);
 		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, groundLayer);
+		Vector2 spawnPoint = new Vector2 (1000, 1000);
+		Vector3 spawnRotation = Vector3.zero;
+		bool onSurface = false;
 		if (hit) {
-			Vector3 surfaceRotation = hit.transform.gameObject.GetComponent<Surface> ().surfaceRotation;
-			portalManager.GeneratePortal (playerNum, hit.point, surfaceRotation);
+			spawnRotation = hit.transform.gameObject.GetComponent<Surface> ().surfaceRotation;
+			spawnPoint = hit.point;
+			onSurface = true;
 		}
+		portalReticle = portalManager.GenerateReticle (playerNum, spawnPoint, spawnRotation);
+		portalReticle.onSurface = onSurface;
+	}
+
+	void MoveReticle(){
+		float zRot = gunPivot.rotation.eulerAngles.z * Mathf.Deg2Rad;
+		Vector2 aimVector = new Vector2 (Mathf.Cos (zRot), Mathf.Sin (zRot));
+		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, groundLayer);
+		Vector2 spawnPoint = new Vector2 (1000, 1000);
+		Vector3 spawnRotation = Vector3.zero;
+		if (hit) {
+			spawnRotation = hit.transform.gameObject.GetComponent<Surface> ().surfaceRotation;
+			spawnPoint = hit.point;
+			portalReticle.onSurface = true;
+		} else {
+			portalReticle.onSurface = false;
+		}
+		portalReticle.transform.position = spawnPoint;
+		portalReticle.transform.rotation = Quaternion.Euler (spawnRotation);
+	}
+
+	void Shoot(){
+		if (portalReticle.onSurface) {
+			portalManager.ActivatePortal (portalReticle, playerNum);
+		} else {
+			Destroy (portalReticle);
+		}
+		portalReticle = null;
+
+
 	}
 
 	bool IsGrounded(){
