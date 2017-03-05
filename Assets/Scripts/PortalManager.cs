@@ -27,23 +27,27 @@ public class PortalManager : MonoBehaviour {
 		GameObject portalObj = Instantiate (portalPrefab, location, Quaternion.Euler(rotation)) as GameObject;
 		Portal portal = portalObj.GetComponent<Portal> ();
 		SpriteRenderer sr = portalObj.GetComponent<SpriteRenderer> ();
+		SpriteRenderer ringSr = portalObj.GetComponentsInChildren<SpriteRenderer> () [1];
 		if (playerNum == 1) {
 			if (nextPortalOrangeP1) {
-				sr.color = new Color (1, 0.5f, 0);
+				sr.color = new Color (1, 0.5f, 0, 0.5f);
 			} 
+			ringSr.color = new Color (1, 0, 0, 0.5f);
 		} else if (playerNum == 2) {
 			if (nextPortalOrangeP2) {
-				sr.color = new Color (1, 0.5f, 0);
+				sr.color = new Color (1, 0.5f, 0, 0.5f);
 			}
+			ringSr.color = new Color (0, 1, 0, 0.5f);
 		}
 		portal.active = false;
-		sr.color = new Color (sr.color.r, sr.color.g, sr.color.b, 0.5f);
 		return portal;
 	}
 
 	public void ActivatePortal(Portal portal, int playerNum){
 		portal.Activate ();
-		SpriteRenderer sr = portal.gameObject.GetComponent<SpriteRenderer> ();
+		SpriteRenderer sr = portal.gameObject.GetComponent<SpriteRenderer> ();		
+		SpriteRenderer ringSr = portal.gameObject.GetComponentsInChildren<SpriteRenderer> () [1];
+		ringSr.color = new Color (ringSr.color.r, ringSr.color.g, ringSr.color.b, 1);
 		if (playerNum == 1) {
 			if (nextPortalOrangeP1) {
 				if (orangePortalP1 != null) {
