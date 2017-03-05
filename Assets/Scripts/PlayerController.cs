@@ -12,32 +12,47 @@ public class PlayerController : MonoBehaviour {
 	public LayerMask groundLayer;
 	public float jumpForce;
 	private Transform gunPivot;
+	private PortalManager portalManager;
+	public float timeLockedOutOfPortals;
 
 	// Use this for initialization
 	void Start () {
 		rb = GetComponent<Rigidbody2D> ();
 		gunPivot = transform.GetChild (0);
+		portalManager = GameObject.FindGameObjectWithTag ("PortalManager").GetComponent<PortalManager>();
 	}
-	
+
+
+	void Update(){
+		if (timeLockedOutOfPortals > 0) {
+			timeLockedOutOfPortals -= Time.deltaTime;
+		}
+	}
 	// Update is called once per frame
 	void FixedUpdate () {
 		ProcessInput ();
 	}
 
 	void ProcessInput(){
-		float y = Input.GetAxis ("Vertical_P" + playerNum);
-		float x = Input.GetAxis ("Horizontal_P" + playerNum);
-		Vector2 inputVector = new Vector2 (x, y);
-		if (inputVector.magnitude > 0.1f) {
-			Rotate (inputVector);
+		float moveY = Input.GetAxis ("Vertical_P" + playerNum);
+		float moveX = Input.GetAxis ("Horizontal_P" + playerNum);
+		Vector2 moveVector = new Vector2 (moveX, moveY);
+		if (Input.GetButton ("Shoot_P" + playerNum)) {
+			Rotate (moveVector);
+		} else if (moveVector.magnitude > 0.1f) {
 			if (IsGrounded ()) {
-				GroundMove (x);
+				GroundMove (moveX);
 			} else {
-				AerialDrift (x);
+				AerialDrift (moveX);
 			}
 		}
 		if (IsGrounded () && Input.GetButtonDown ("Jump_P" + playerNum)) {
+			Debug.Log ("jumping");
 			Jump ();
+		}
+
+		if (Input.GetButtonUp ("Shoot_P" + playerNum)) {
+			Shoot ();
 		}
 	}
 
@@ -61,6 +76,17 @@ public class PlayerController : MonoBehaviour {
 
 	void Jump(){
 		rb.velocity = jumpForce * Vector2.up;
+	}
+
+	void Shoot(){
+		float zRot = gunPivot.rotation.eulerAngles.z * Mathf.Deg2Rad;
+		Vector2 aimVector = new Vector2 (Mathf.Cos (zRot), Mathf.Sin (zRot));
+		Debug.DrawRay (transform.position, aimVector * 100, Color.blue, 2f);
+		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, groundLayer);
+		if (hit) {
+			Vector3 surfaceRotation = hit.transform.gameObject.GetComponent<Surface> ().surfaceRotation;
+			portalManager.GeneratePortal (playerNum, hit.point, surfaceRotation);
+		}
 	}
 
 	bool IsGrounded(){
