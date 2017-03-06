@@ -10,17 +10,22 @@ public class PlayerController : MonoBehaviour {
 	private Rigidbody2D rb;
 	public float groundDetectionDistance;
 	public LayerMask groundLayer;
+	public LayerMask surfaceLayer;
 	public float jumpForce;
 	private Transform gunPivot;
 	private PortalManager portalManager;
 	public float timeLockedOutOfPortals;
 	private Portal portalReticle;
+	public float bumpPower;
+	public Vector3 respawnPoint;
+	private GameManager gameManager;
 
 	// Use this for initialization
 	void Start () {
 		rb = GetComponent<Rigidbody2D> ();
 		gunPivot = transform.GetChild (0);
 		portalManager = GameObject.FindGameObjectWithTag ("PortalManager").GetComponent<PortalManager>();
+		gameManager = GameObject.FindGameObjectWithTag ("GameManager").GetComponent<GameManager>();
 	}
 
 
@@ -31,6 +36,7 @@ public class PlayerController : MonoBehaviour {
 	}
 	// Update is called once per frame
 	void FixedUpdate () {
+		CheckIfDead ();
 		ProcessInput ();
 	}
 
@@ -87,7 +93,7 @@ public class PlayerController : MonoBehaviour {
 	void SpawnReticle(){
 		float zRot = gunPivot.rotation.eulerAngles.z * Mathf.Deg2Rad;
 		Vector2 aimVector = new Vector2 (Mathf.Cos (zRot), Mathf.Sin (zRot));
-		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, groundLayer);
+		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, surfaceLayer);
 		Vector2 spawnPoint = new Vector2 (1000, 1000);
 		Vector3 spawnRotation = Vector3.zero;
 		bool onSurface = false;
@@ -103,7 +109,7 @@ public class PlayerController : MonoBehaviour {
 	void MoveReticle(){
 		float zRot = gunPivot.rotation.eulerAngles.z * Mathf.Deg2Rad;
 		Vector2 aimVector = new Vector2 (Mathf.Cos (zRot), Mathf.Sin (zRot));
-		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, groundLayer);
+		RaycastHit2D hit = Physics2D.Raycast (transform.position, aimVector, Mathf.Infinity, surfaceLayer);
 		Vector2 spawnPoint = new Vector2 (1000, 1000);
 		Vector3 spawnRotation = Vector3.zero;
 		if (hit) {
@@ -132,4 +138,20 @@ public class PlayerController : MonoBehaviour {
 		return Physics2D.Raycast (transform.position, Vector2.down, groundDetectionDistance, groundLayer);
 	}
 
+	void OnTriggerEnter2D(Collider2D collider){
+		GameObject playerObj = collider.gameObject;
+		if (playerObj.tag == "Player") {
+			Rigidbody2D otherRb = playerObj.GetComponent<Rigidbody2D> ();
+			if (otherRb.velocity.magnitude < rb.velocity.magnitude){
+				otherRb.AddForce (bumpPower * rb.velocity);
+				rb.velocity = Vector3.zero;
+			}
+		}
+	}
+
+	void CheckIfDead(){
+		if (!GetComponent<SpriteRenderer> ().isVisible) {
+			gameManager.RespawnPlayer (playerNum);
+		}
+	}
 }

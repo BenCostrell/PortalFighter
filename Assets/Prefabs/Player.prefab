@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 61600668382572126}
   - component: {fileID: 50248948936874252}
   - component: {fileID: 114552964034239426}
+  - component: {fileID: 58235575997700602}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -122,6 +123,20 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!58 &58235575997700602
+CircleCollider2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1049686790655432}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 2.4999998
 --- !u!61 &61600668382572126
 BoxCollider2D:
   m_ObjectHideFlags: 1
@@ -154,8 +169,13 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
+  surfaceLayer:
+    serializedVersion: 2
+    m_Bits: 512
   jumpForce: 75
   timeLockedOutOfPortals: 0
+  bumpPower: 50
+  respawnPoint: {x: 0, y: 10, z: 0}
 --- !u!212 &212364276953641206
 SpriteRenderer:
   m_ObjectHideFlags: 1
