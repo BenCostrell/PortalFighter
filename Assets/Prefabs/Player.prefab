@@ -172,10 +172,10 @@ MonoBehaviour:
   surfaceLayer:
     serializedVersion: 2
     m_Bits: 512
-  jumpForce: 75
+  jumpForce: 85
   timeLockedOutOfPortals: 0
-  bumpPower: 50
-  respawnPoint: {x: 0, y: 10, z: 0}
+  bumpPower: 100
+  postShotFreezeTime: 0.2
 --- !u!212 &212364276953641206
 SpriteRenderer:
   m_ObjectHideFlags: 1

@@ -6,6 +6,8 @@ TagManager:
   tags:
   - PortalManager
   - GameManager
+  - Pickup
+  - Bomb
   layers:
   - Default
   - TransparentFX

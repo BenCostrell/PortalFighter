@@ -17,8 +17,9 @@ public class PlayerController : MonoBehaviour {
 	public float timeLockedOutOfPortals;
 	private Portal portalReticle;
 	public float bumpPower;
-	public Vector3 respawnPoint;
 	private GameManager gameManager;
+	public float postShotFreezeTime;
+	private float postShotFreezeTimer;
 
 	// Use this for initialization
 	void Start () {
@@ -36,8 +37,16 @@ public class PlayerController : MonoBehaviour {
 	}
 	// Update is called once per frame
 	void FixedUpdate () {
-		CheckIfDead ();
-		ProcessInput ();
+		if (!gameManager.gameOver) {
+			if (gameManager.frameCount > gameManager.framesBeforeCheckingForDeath) {
+				CheckIfDead ();
+			}
+			if (postShotFreezeTimer > 0) {
+				postShotFreezeTimer -= Time.deltaTime;
+			} else {
+				ProcessInput ();
+			}
+		}
 	}
 
 	void ProcessInput(){
@@ -131,7 +140,7 @@ public class PlayerController : MonoBehaviour {
 		}
 		portalReticle = null;
 
-
+		postShotFreezeTimer = postShotFreezeTime;
 	}
 
 	bool IsGrounded(){
@@ -149,9 +158,22 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 
+	void OnCollisionEnter2D(Collision2D collision){
+		GameObject obj = collision.collider.gameObject;
+		if (obj.tag == "Pickup") {
+			Destroy (obj);
+			gameManager.GetExtraLife (playerNum);
+		}
+	}
+
 	void CheckIfDead(){
 		if (!GetComponent<SpriteRenderer> ().isVisible) {
-			gameManager.RespawnPlayer (playerNum);
+			Die ();
 		}
+	}
+
+	public void Die(){
+		gameManager.PlayerDeath (playerNum);
+
 	}
 }
